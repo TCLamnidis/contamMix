@@ -1,3 +1,5 @@
+#!/usr/local/bin/Rscript
+
 library(contamMix)
 library(getopt)
 # options(mc.cores = parallel::detectCores()) ## Original behaviour of using all available cores.
@@ -55,13 +57,14 @@ if (!interactive()  &&  (is.null(opt$samFn)  ||  is.null(opt$malnFn))) {
 used_cores = min(parallel::detectCores(), opt$nrThreads)
 options(mc.cores = used_cores)
 cat(paste0("Using ",used_cores, " threads.\n"), file=stderr())
+print(options())
 
 ## test only
 #data = loadSAM(samFn="~/data/emh/mt_only/Paglicci23_sequence_merged_quality_Monly-human_MT.sort.q30_l35_uniq.bam", malnFn="~/data/emh/mt_only/aln.mafft", opt$alnFn, endogId="Paglicci23"
 
 ## do the work
 data = loadSAM(samFn=opt$samFn, malnFn=opt$malnFn, endogId=opt$consId, baseqThreshold=opt$baseq, transverOnly=opt$transverOnly, trimBases=opt$trimBases, saveMN=opt$saveMN)
-res = runChains(nChains=opt$nChains, nIter=opt$nIter, data=data, alpha=opt$alpha)
+res = runChains(nChains=opt$nChains, nIter=opt$nIter, data=data, alpha=opt$alpha, num_threads=used_cores)
 
 ## results in text format
 print.contamMix(res, tabDelim=opt$tabOutput)

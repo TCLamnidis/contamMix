@@ -27,7 +27,7 @@ x_runChain <- function(y, nIter, alpha, recordAll) {
   return(res)
 }
 
-runChains <- function(data, nChains, nIter, alpha = 0.1, recordAll = FALSE) {
+runChains <- function(data, nChains, nIter, alpha = 0.1, recordAll = FALSE, num_threads = 1) {
   if (class(data) != "contamMix") stop("data is of wrong type")
   if (nChains < 1) stop("nChains must be a positive number")
   if (nIter < 1) stop("nIter must be a positive number")
@@ -38,8 +38,14 @@ runChains <- function(data, nChains, nIter, alpha = 0.1, recordAll = FALSE) {
   if (is.vector(y)) { y = t(y) } #edge case if only one read
 
   ## run multiple chains, ideally in parallel
-  data$chains =
-    parallel::mclapply(1:nChains, function(i) (
-      x_runChain(y, nIter, alpha, recordAll) ))
+  data$chains = parallel::mclapply(
+    1:nChains,
+    function(i) (
+      x_runChain(y, nIter, alpha, recordAll)
+    ),
+    mc.cores = num_threads,
+    mc.allow.recursive = F,
+    mc.preschedule = F
+  )
   data
 }
